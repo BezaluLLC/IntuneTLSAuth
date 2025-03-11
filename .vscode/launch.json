@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Azure Functions Core Tools",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/azure-functions-core-tools/bin/func",
+      "args": ["host", "start"],
+      "console": "integratedTerminal",
+      "env": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "python"
+      }
+    }
+  ]
+}
