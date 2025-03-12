@@ -1,15 +1,12 @@
 # Product Context
 
-## Why this project exists
-This project provides an endpoint for verifying if a requester's public IP address is trusted. It is designed to integrate with the Unifi API for IP verification.
+## Purpose
+The project exists to provide a secure and efficient way to verify if a requester's public IP address is trusted. This is achieved by integrating with the Unifi Site Manager API.
 
-## What problems it solves
-1. Ensures only trusted IPs can access certain resources or services.
-2. Provides a mechanism to log and debug IP verification requests.
+## Problem Solved
+The system ensures that only trusted IPs can access certain resources, enhancing security and reducing unauthorized access.
 
-## How it should work
-1. The `/verify` endpoint receives an HTTP GET request.
-2. The requester's IP address is extracted from the `X-Forwarded-For` header.
-3. The IP is checked against a list of trusted IPs.
-4. Logs are generated for debugging and monitoring purposes.
-5. A response is returned indicating whether the IP is trusted or not.
+## How It Works
+1. The `UnifiService` interacts with the Unifi API to fetch a list of trusted IPs.
+2. The `verify` function in `function_app.py` checks if the requester's IP is in the list of trusted IPs.
+3. Logging is implemented to provide visibility into the process and aid debugging.

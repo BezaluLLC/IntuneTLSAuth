@@ -1,13 +1,13 @@
 # Progress
 
-## What works
-1. The `/verify` endpoint is functional and checks the requester's IP against a list of trusted IPs.
-2. Debug logging captures the requester's IP and request headers.
-3. Responses include the requester's IP for better visibility.
+## What Works
+1. The `UnifiService` class successfully interacts with the Unifi API to fetch trusted IPs.
+2. The `verify` function validates the requester's IP against the list of trusted IPs.
+3. Logging is implemented for debugging and information purposes.
 
-## What's left to build
-1. Monitor logs to ensure the `X-Forwarded-For` header is being received correctly.
-2. Investigate further if the header is missing or contains unexpected values.
+## What's Left to Build
+- Further testing to ensure the system behaves as expected in all scenarios.
+- Address any additional feedback or edge cases that arise during testing.
 
-## Progress status
-The system is operational with enhanced logging for debugging and monitoring. Further investigation is required to ensure the `X-Forwarded-For` header is consistently available.
+## Progress Status
+The core functionality is complete, and the system is ready for testing and validation.
