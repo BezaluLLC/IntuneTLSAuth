@@ -31,7 +31,7 @@ steps:
 # Update a function app with .NET, Python, JavaScript, PowerShell, Java based web applications.
 - task: AzureFunctionApp@2
   inputs:
-    connectedServiceNameARM: 'IntuneTLSAuth-CICD' # string. Alias: azureSubscription. Required. Azure Resource Manager connection. 
+    connectedServiceNameARM: 'IntuneTLSAuth' # string. Alias: azureSubscription. Required. Azure Resource Manager connection. 
     appType: 'functionAppLinux' # 'functionApp' | 'functionAppLinux'. Required. App type. 
     isFlexConsumption: true # boolean. Is Function App on Flex Consumption Plan. Default: false.
     appName: 'IntuneTLSAuth' # string. Required. Azure Functions App name. 
