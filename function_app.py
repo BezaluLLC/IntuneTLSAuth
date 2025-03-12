@@ -22,7 +22,7 @@ def verify(req: func.HttpRequest) -> func.HttpResponse:
 
     logging.info(f"Trusted IPs: {trusted_ips}")
 
-    requester_ip = req.headers.get("client-ip", "Unknown IP")
+    requester_ip = req.headers.get("client-ip", "Unknown IP").split(":")[0]
 
     if requester_ip in trusted_ips:
         logging.info(f"Match found: IP {requester_ip} is trusted.")

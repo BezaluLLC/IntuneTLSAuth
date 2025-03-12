@@ -17,36 +17,23 @@ class UnifiService:
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {self.api_token}"})
 
-    def get_trusted_ips(self, page_size: int = 10) -> list:
+    def get_trusted_ips(self) -> list:
         """
         Retrieve the list of trusted public IPs from the Unifi API.
-        Supports pagination.
         """
         try:
-            trusted_ips = []
-            next_token = None
+            response = self.session.get(
+                f"{self.BASE_URL}/ea/hosts",
+                headers={"X-API-KEY": self.api_token},
+            )
+            response.raise_for_status()
     
-            while True:
-                params = {"pageSize": page_size}
-                if next_token:
-                    params["nextToken"] = next_token
+            # Log the raw API response for debugging
+            logging.info(f"Raw API response: {response.text}")
     
-                response = self.session.get(
-                    f"{self.BASE_URL}/ea/hosts",
-                    headers={"X-API-KEY": self.api_token},
-                    params=params,
-                )
-                response.raise_for_status()
-                data = response.json().get("data", [])
-                next_token = response.json().get("nextToken")
+            data = response.json().get("data", [])
     
-                for host in data:
-                    ip = host.get("ip")
-                    if ip:
-                        trusted_ips.append(ip)
-    
-                if not next_token:
-                    break
+            trusted_ips = [host.get("ipAddress") for host in data if host.get("ipAddress")]
     
             logging.info(f"Trusted IPs retrieved: {trusted_ips}")
             return trusted_ips
