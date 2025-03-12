@@ -1,15 +1,18 @@
 # Active Context
 
-## What you're working on now
-Debugging and improving the `/verify` endpoint in the Azure Function to handle IP verification and logging.
+## Current Task
+Integrating the Unifi service into the function and refining its implementation.
 
-## Recent changes
-1. Replaced `req.remote_addr` with a fallback value of "Unknown IP" when the `X-Forwarded-For` header is not present.
-2. Added debug logging to log the requester's IP address.
-3. Updated the HTTP response to include the requester's IP address.
-4. Added logging to capture all request headers for better debugging.
-5. Improved logging to display request headers as a dictionary for better readability.
+## Recent Changes
+1. Integrated the Unifi service into the `verify` function in `function_app.py`.
+2. Updated the `UnifiService.get_trusted_ips` method to:
+   - Use the `/ea/hosts` endpoint.
+   - Remove private IP evaluation logic.
+   - Remove pagination logic.
+   - Add debug logging for the raw API response.
+3. Updated the `verify` function to:
+   - Strip the port from the `requester_ip` for accurate comparison.
 
-## Next steps
-1. Monitor logs to verify if the `X-Forwarded-For` header is being received correctly.
-2. Investigate further if the header is missing or unexpected values are observed.
+## Next Steps
+- Test the implementation to ensure it works as expected.
+- Address any further feedback or issues that arise during testing.
