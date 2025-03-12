@@ -9,28 +9,46 @@ class UnifiService:
 
     BASE_URL = "https://api.ui.com"
 
-    def __init__(self, api_token: str):
-        self.api_token = api_token
+    def __init__(self):
+        import os
+        self.api_token = os.getenv("UNIFI_API_TOKEN")
+        if not self.api_token:
+            raise ValueError("Unifi API token is not set in environment variables.")
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {self.api_token}"})
 
-    def get_trusted_ips(self) -> list:
+    def get_trusted_ips(self, page_size: int = 10) -> list:
         """
         Retrieve the list of trusted public IPs from the Unifi API.
-        Filters out private IP addresses.
+        Filters out private IP addresses and supports pagination.
         """
         try:
-            response = self.session.get(f"{self.BASE_URL}/ea/sites")
-            response.raise_for_status()
-            data = response.json().get("data", [])
-
             trusted_ips = []
-            for site in data:
-                ip_addrs = site.get("ipAddrs", [])
-                for ip in ip_addrs:
-                    if not self._is_private_ip(ip):
+            next_token = None
+    
+            while True:
+                params = {"pageSize": page_size}
+                if next_token:
+                    params["nextToken"] = next_token
+    
+                response = self.session.get(
+                    f"{self.BASE_URL}/ea/hosts",
+                    headers={"X-API-KEY": self.api_token},
+                    params=params,
+                )
+                response.raise_for_status()
+                data = response.json().get("data", [])
+                next_token = response.json().get("nextToken")
+    
+                for host in data:
+                    ip = host.get("IP")
+                    if ip and not self._is_private_ip(ip):
                         trusted_ips.append(ip)
-
+    
+                if not next_token:
+                    break
+    
+            logging.debug(f"Trusted IPs retrieved: {trusted_ips}")
             return trusted_ips
         except requests.RequestException as e:
             logging.error(f"Failed to retrieve trusted IPs: {e}")
