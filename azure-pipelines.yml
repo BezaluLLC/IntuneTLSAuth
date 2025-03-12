@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+      - main
+pool:
+  vmImage: ubuntu-latest
+steps:
+- task: UsePythonVersion@0
+  displayName: "Set Python version to 3.11"
+  inputs:
+    versionSpec: '3.11'
+    architecture: 'x64'
+- bash: |
+    if [ -f extensions.csproj ]
+    then
+        dotnet build extensions.csproj --output ./bin
+    fi
+    pip install --target="./.python_packages/lib/site-packages" -r ./requirements.txt
+- task: ArchiveFiles@2
+  displayName: "Archive files"
+  inputs:
+    rootFolderOrFile: "$(System.DefaultWorkingDirectory)"
+    includeRootFolder: false
+    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+    artifactName: 'drop'
+
+# Azure Functions Deploy v2
+# Update a function app with .NET, Python, JavaScript, PowerShell, Java based web applications.
+- task: AzureFunctionApp@2
+  inputs:
+    connectedServiceNameARM: 'IntuneTLSAuth' # string. Alias: azureSubscription. Required. Azure Resource Manager connection. 
+    appType: 'functionAppLinux' # 'functionApp' | 'functionAppLinux'. Required. App type. 
+    isFlexConsumption: true # boolean. Is Function App on Flex Consumption Plan. Default: false.
+    appName: 'IntuneTLSAuth' # string. Required. Azure Functions App name. 
+    #deployToSlotOrASE: false # boolean. Optional. Use when appType != "" && isFlexConsumption = false. Deploy to Slot or App Service Environment. Default: false.
+    #resourceGroupName: # string. Required when deployToSlotOrASE = true. Resource group. 
+    #slotName: 'production' # string. Required when deployToSlotOrASE = true. Slot. Default: production.
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip' # string. Required. Package or folder. Default: $(System.DefaultWorkingDirectory)/**/*.zip.
+    #runtimeStack: # 'DOTNET|6.0' | 'DOTNET-ISOLATED|6.0' | 'DOTNET-ISOLATED|7.0' | 'DOTNET-ISOLATED|8.0' | 'JAVA|8' | 'JAVA|11' | 'JAVA|17' | 'JAVA|21' | 'NODE|14' | 'NODE|16' | 'NODE|18' | 'NODE|20' | 'PYTHON|3.8' | 'PYTHON|3.9' | 'PYTHON|3.10' | 'PYTHON|3.11'. Optional. Use when appType = functionAppLinux && isFlexConsumption = false. Runtime stack. 
+  # Application and Configuration Settings
+    #appSettings: # string. App settings. 
+  # Additional Deployment Options
+    #deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required when appType != "" && isFlexConsumption = false && appType != "" && package NotEndsWith .war && Package NotEndsWith .jar. Deployment method. Default: auto.
