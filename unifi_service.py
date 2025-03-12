@@ -27,10 +27,7 @@ class UnifiService:
                 headers={"X-API-KEY": self.api_token},
             )
             response.raise_for_status()
-    
-            # Log the raw API response for debugging
-            logging.info(f"Raw API response: {response.text}")
-    
+        
             data = response.json().get("data", [])
     
             trusted_ips = [host.get("ipAddress") for host in data if host.get("ipAddress")]
