@@ -1,20 +1,11 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+## Purpose
+The project exists to provide a secure and efficient way to verify if a requester's public IP address is trusted. This is achieved by integrating with the Unifi Site Manager API.  
+Primarily meant to satisfy the [AllowedTlsAuthenticationEndpoints Intune CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-networklistmanager#allowedtlsauthenticationendpoints)
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+## Problem Solved
+The system ensures that only trusted networks are flagged as 'domain' for Windows purposes.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
-
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## How It Works
+1. The `UnifiService` interacts with the Unifi API to fetch a list of trusted IPs.
+2. The `verify` function in `function_app.py` checks if the requester's IP is in the list of trusted IPs.
+3. Logging is implemented to provide visibility into the process and aid debugging.
