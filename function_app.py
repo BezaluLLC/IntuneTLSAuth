@@ -20,7 +20,7 @@ def verify(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(f"Error initializing UnifiService or fetching trusted IPs: {e}")
         return func.HttpResponse("Failed to process request.", status_code=500)
 
-    logging.debug(f"Trusted IPs: {trusted_ips}")
+    logging.info(f"Trusted IPs: {trusted_ips}")
 
     requester_ip = req.headers.get("client-ip", "Unknown IP")
 

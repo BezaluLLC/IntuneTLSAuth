@@ -20,7 +20,7 @@ class UnifiService:
     def get_trusted_ips(self, page_size: int = 10) -> list:
         """
         Retrieve the list of trusted public IPs from the Unifi API.
-        Filters out private IP addresses and supports pagination.
+        Supports pagination.
         """
         try:
             trusted_ips = []
@@ -41,28 +41,15 @@ class UnifiService:
                 next_token = response.json().get("nextToken")
     
                 for host in data:
-                    ip = host.get("IP")
-                    if ip and not self._is_private_ip(ip):
+                    ip = host.get("ip")
+                    if ip:
                         trusted_ips.append(ip)
     
                 if not next_token:
                     break
     
-            logging.debug(f"Trusted IPs retrieved: {trusted_ips}")
+            logging.info(f"Trusted IPs retrieved: {trusted_ips}")
             return trusted_ips
         except requests.RequestException as e:
             logging.error(f"Failed to retrieve trusted IPs: {e}")
             raise
-
-    @staticmethod
-    def _is_private_ip(ip: str) -> bool:
-        """
-        Check if an IP address is private.
-        """
-        private_networks = [
-            ip_network("10.0.0.0/8"),
-            ip_network("172.16.0.0/12"),
-            ip_network("192.168.0.0/16"),
-        ]
-        ip_obj = ip_address(ip)
-        return any(ip_obj in network for network in private_networks)
