@@ -1,5 +1,6 @@
 import requests
 import logging
+import aiohttp
 from ipaddress import ip_address, ip_network
 
 class UnifiService:
@@ -17,23 +18,20 @@ class UnifiService:
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Bearer {self.api_token}"})
 
-    def get_trusted_ips(self) -> list:
+    async def get_trusted_ips_async(self) -> list:
         """
-        Retrieve the list of trusted public IPs from the Unifi API.
+        Asynchronously retrieve the list of trusted public IPs from the Unifi API.
         """
         try:
-            response = self.session.get(
-                f"{self.BASE_URL}/ea/hosts",
-                headers={"X-API-KEY": self.api_token},
-            )
-            response.raise_for_status()
-        
-            data = response.json().get("data", [])
-    
-            trusted_ips = [host.get("ipAddress") for host in data if host.get("ipAddress")]
+            async with aiohttp.ClientSession(headers={"Authorization": f"Bearer {self.api_token}"}) as session:
+                async with session.get(f"{self.BASE_URL}/ea/hosts", headers={"X-API-KEY": self.api_token}) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+            
+            trusted_ips = [host.get("ipAddress") for host in data.get("data", []) if host.get("ipAddress")]
     
             logging.info(f"Trusted IPs retrieved: {trusted_ips}")
             return trusted_ips
-        except requests.RequestException as e:
+        except aiohttp.ClientError as e:
             logging.error(f"Failed to retrieve trusted IPs: {e}")
             raise
