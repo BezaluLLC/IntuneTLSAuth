@@ -4,3 +4,4 @@
 
 azure-functions
 requests
+azure.monitor.opentelemetry
