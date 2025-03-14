@@ -1,10 +1,12 @@
 import azure.functions as func
 import logging
 from unifi_service import UnifiService
+
+
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 @app.route(route="verify", methods=["GET"])
-def verify(req: func.HttpRequest) -> func.HttpResponse:
+async def verify(req: func.HttpRequest) -> func.HttpResponse:
     """
     HTTP trigger function to verify if the requester's public IP is trusted.
     """
@@ -14,7 +16,7 @@ def verify(req: func.HttpRequest) -> func.HttpResponse:
     try:
         unifi_service = UnifiService()
         # Fetch trusted IPs from Unifi API
-        trusted_ips = unifi_service.get_trusted_ips()
+        trusted_ips = await unifi_service.get_trusted_ips_async()
     except Exception as e:
         logging.error(f"Error initializing UnifiService or fetching trusted IPs: {e}")
         return func.HttpResponse("Failed to process request.", status_code=500)
