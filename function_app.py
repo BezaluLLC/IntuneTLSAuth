@@ -1,6 +1,8 @@
 import azure.functions as func
 import logging
 from unifi_service import UnifiService
+from azure.monitor.opentelemetry import configure_azure_monitor 
+configure_azure_monitor() 
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
