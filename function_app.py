@@ -1,8 +1,6 @@
 import azure.functions as func
 import logging
 from unifi_service import UnifiService
-from azure.monitor.opentelemetry import configure_azure_monitor 
-configure_azure_monitor() # Initialize Azure Monitor for logging
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 @app.route(route="verify", methods=["GET"])
