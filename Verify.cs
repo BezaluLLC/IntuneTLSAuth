@@ -55,7 +55,8 @@ namespace IntuneTLSDotNet
 
         private void LogRequest(HttpRequest req)
         {
-            _logger.LogInformation(req.ToString());
+            string rawRequest = req.HttpContext.ToString() ?? "null";
+            _logger.LogInformation($"Raw request: {rawRequest}");
         }
     }
 }
