@@ -23,16 +23,18 @@ steps:
   inputs:
     rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
     includeRootFolder: false
-    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
-- task: PublishBuildArtifacts@1
+    archiveFile: "$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip"
+- task: PublishPipelineArtifact@1
   inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
-    artifactName: 'drop'
+    targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    artifact: 'drop'
+    publishLocation: 'pipeline'
+      
 - task: AzureFunctionApp@2 # Add this at the end of your file
   inputs:
     connectedServiceNameARM: 'IntuneTLSAuth'
     appType: 'functionAppLinux' # This specifies a Linux-based function app
     isFlexConsumption: true # Uncomment this line if you are deploying to a Flex Consumption app
     appName: 'IntuneTLSAuthDotNet'
-    package: '$(System.ArtifactsDirectory)/**/*.zip'
+    package: 'drop/$(Build.BuildId).zip''
     deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
