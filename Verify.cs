@@ -7,16 +7,10 @@ using System.Threading.Tasks;
 
 namespace IntuneTLSDotNet
 {
-    public class Verify
+    public class Verify(ILogger<Verify> logger, IUnifiService unifiService)
     {
-        private readonly ILogger<Verify> _logger;
-        private readonly IUnifiService _unifiService;
-
-        public Verify(ILogger<Verify> logger, IUnifiService unifiService)
-        {
-            _logger = logger;
-            _unifiService = unifiService;
-        }
+        private readonly ILogger<Verify> _logger = logger;
+        private readonly IUnifiService _unifiService = unifiService;
 
         [Function("Verify")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
