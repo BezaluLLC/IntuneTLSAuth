@@ -17,8 +17,15 @@ namespace IntuneTLSDotNet
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            // Get the client's IP address
-            string ipAddress = req.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            // Get the client's IP address from X-Forwarded-For header
+            string ipAddress = req.Headers["X-Forwarded-For"].FirstOrDefault() ?? "unknown";
+
+            // X-Forwarded-For can contain multiple IPs - we want the first one (client's original IP)
+            if (ipAddress.Contains(','))
+            {
+                ipAddress = ipAddress.Split(',')[0].Trim();
+            }
+
             _logger.LogInformation($"Request from IP: {ipAddress}");
 
             // Check if the IP is authorized
