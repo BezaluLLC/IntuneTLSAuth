@@ -1,8 +1,10 @@
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
 trigger:
-- DotNet
+  branches:
+    include:
+      - DotNet
 
 steps:
 - script: |
@@ -29,8 +31,8 @@ steps:
 - task: AzureFunctionApp@2 # Add this at the end of your file
   inputs:
     connectedServiceNameARM: 'IntuneTLSAuth'
-    appType: functionAppLinux # This specifies a Linux-based function app
+    appType: 'functionAppLinux' # This specifies a Linux-based function app
     isFlexConsumption: true # Uncomment this line if you are deploying to a Flex Consumption app
     appName: 'IntuneTLSAuthDotNet'
-    package: $(System.ArtifactsDirectory)/**/*.zip
+    package: '$(System.ArtifactsDirectory)/**/*.zip'
     deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
