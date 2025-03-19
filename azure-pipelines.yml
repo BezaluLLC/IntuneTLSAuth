@@ -4,11 +4,6 @@ pool:
 trigger:
 - DotNet
 
-variables:
-  # Azure service connection established during pipeline creation
-  azureSubscription: 'Bezalu - App Service LZ'
-  appName: 'IntuneTLSDotNet'
-
 steps:
 - script: |
     dotnet restore
@@ -36,6 +31,6 @@ steps:
     connectedServiceNameARM: 'IntuneTLSAuth'
     appType: functionAppLinux # This specifies a Linux-based function app
     isFlexConsumption: true # Uncomment this line if you are deploying to a Flex Consumption app
-    appName: $(appName)
+    appName: 'IntuneTLSAuthDotNet'
     package: $(System.ArtifactsDirectory)/**/*.zip
     deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
