@@ -55,51 +55,59 @@ namespace IntuneTLSDotNet
 
         private void LogRequest(HttpRequest req)
         {
-            // Create a single, structured log entry with all request details
-            var requestInfo = new
-            {
-                // Basic request info
-                Method = req.Method,
-                Protocol = req.Protocol,
-                Scheme = $"{req.Scheme} (IsHttps: {req.IsHttps})",
-                Host = req.Host.ToString(),
-                Path = req.Path.ToString(),
-                PathBase = req.PathBase.ToString(),
-                QueryString = req.QueryString.ToString(),
+            // Convert collections to dictionaries with explicit types for deeper properties
+            Dictionary<string, string> headers = req.Headers.ToDictionary(
+                h => h.Key,
+                h => string.Join(", ", h.Value.ToArray()));
 
-                // Headers (including the ones we're particularly interested in)
-                Headers = req.Headers.ToDictionary(h => h.Key, h => string.Join(", ", h.Value.ToArray())),
+            Dictionary<string, string> queryParams = req.Query.ToDictionary(
+                q => q.Key,
+                q => string.Join(", ", q.Value.ToArray()));
 
-                // Query parameters
-                QueryParams = req.Query.ToDictionary(q => q.Key, q => string.Join(", ", q.Value.ToArray())),
+            Dictionary<string, string> cookies = req.Cookies.ToDictionary(
+                c => c.Key,
+                c => c.Value);
 
-                // Cookies
-                Cookies = req.Cookies.ToDictionary(c => c.Key, c => c.Value),
+            Dictionary<string, string?> routeValues = req.RouteValues?.ToDictionary(
+                r => r.Key,
+                r => r.Value?.ToString()) ?? new();
 
-                // Content details
-                ContentType = req.ContentType,
-                ContentLength = req.ContentLength,
-                HasFormContentType = req.HasFormContentType,
+            // Connection info
+            string remoteIp = req.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+            int remotePort = req.HttpContext.Connection.RemotePort;
+            string localIp = req.HttpContext.Connection.LocalIpAddress?.ToString() ?? "";
+            int localPort = req.HttpContext.Connection.LocalPort;
+            bool clientCertAvailable = req.HttpContext.Connection.ClientCertificate != null;
 
-                // Connection info
-                Connection = new
-                {
-                    RemoteIpAddress = req.HttpContext.Connection.RemoteIpAddress?.ToString(),
-                    RemotePort = req.HttpContext.Connection.RemotePort,
-                    LocalIpAddress = req.HttpContext.Connection.LocalIpAddress?.ToString(),
-                    LocalPort = req.HttpContext.Connection.LocalPort,
-                    ClientCertAvailable = req.HttpContext.Connection.ClientCertificate != null
-                },
-
-                // Route values
-                RouteValues = req.RouteValues?.ToDictionary(r => r.Key, r => r.Value?.ToString()),
-
-                // Additional context
-                TraceIdentifier = req.HttpContext.TraceIdentifier
-            };
-
-            // Log the entire request info as a single structured log entry
-            _logger.LogInformation("HTTP Request: {@RequestDetails}", requestInfo);
+            // Log all information in a single log entry with named properties
+            _logger.LogInformation(
+                "HTTP Request: Method={Method}, Protocol={Protocol}, Scheme={Scheme}, " +
+                "Host={Host}, Path={Path}, PathBase={PathBase}, QueryString={QueryString}, " +
+                "ContentType={ContentType}, ContentLength={ContentLength}, HasFormContentType={HasFormContentType}, " +
+                "RemoteIpAddress={RemoteIpAddress}, RemotePort={RemotePort}, " +
+                "LocalIpAddress={LocalIpAddress}, LocalPort={LocalPort}, ClientCertAvailable={ClientCertAvailable}, " +
+                "TraceIdentifier={TraceIdentifier}, Headers={@Headers}, QueryParams={@QueryParams}, " +
+                "Cookies={@Cookies}, RouteValues={@RouteValues}",
+                req.Method,
+                req.Protocol,
+                $"{req.Scheme} (IsHttps: {req.IsHttps})",
+                req.Host.ToString(),
+                req.Path.ToString(),
+                req.PathBase.ToString(),
+                req.QueryString.ToString(),
+                req.ContentType,
+                req.ContentLength,
+                req.HasFormContentType,
+                remoteIp,
+                remotePort,
+                localIp,
+                localPort,
+                clientCertAvailable,
+                req.HttpContext.TraceIdentifier,
+                headers,
+                queryParams,
+                cookies,
+                routeValues);
         }
     }
 }
