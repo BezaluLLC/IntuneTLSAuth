@@ -55,8 +55,51 @@ namespace IntuneTLSDotNet
 
         private void LogRequest(HttpRequest req)
         {
-            string rawRequest = req.HttpContext.ToString() ?? "null";
-            _logger.LogInformation($"Raw request: {rawRequest}");
+            // Create a single, structured log entry with all request details
+            var requestInfo = new
+            {
+                // Basic request info
+                Method = req.Method,
+                Protocol = req.Protocol,
+                Scheme = $"{req.Scheme} (IsHttps: {req.IsHttps})",
+                Host = req.Host.ToString(),
+                Path = req.Path.ToString(),
+                PathBase = req.PathBase.ToString(),
+                QueryString = req.QueryString.ToString(),
+
+                // Headers (including the ones we're particularly interested in)
+                Headers = req.Headers.ToDictionary(h => h.Key, h => string.Join(", ", h.Value.ToArray())),
+
+                // Query parameters
+                QueryParams = req.Query.ToDictionary(q => q.Key, q => string.Join(", ", q.Value.ToArray())),
+
+                // Cookies
+                Cookies = req.Cookies.ToDictionary(c => c.Key, c => c.Value),
+
+                // Content details
+                ContentType = req.ContentType,
+                ContentLength = req.ContentLength,
+                HasFormContentType = req.HasFormContentType,
+
+                // Connection info
+                Connection = new
+                {
+                    RemoteIpAddress = req.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    RemotePort = req.HttpContext.Connection.RemotePort,
+                    LocalIpAddress = req.HttpContext.Connection.LocalIpAddress?.ToString(),
+                    LocalPort = req.HttpContext.Connection.LocalPort,
+                    ClientCertAvailable = req.HttpContext.Connection.ClientCertificate != null
+                },
+
+                // Route values
+                RouteValues = req.RouteValues?.ToDictionary(r => r.Key, r => r.Value?.ToString()),
+
+                // Additional context
+                TraceIdentifier = req.HttpContext.TraceIdentifier
+            };
+
+            // Log the entire request info as a single structured log entry
+            _logger.LogInformation("HTTP Request: {@RequestDetails}", requestInfo);
         }
     }
 }
