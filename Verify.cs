@@ -55,6 +55,26 @@ namespace IntuneTLSDotNet
 
         private void LogRequest(HttpRequest req)
         {
+            // For Headers - serialize to JSON string instead of dictionary
+            var headers = System.Text.Json.JsonSerializer.Serialize(req.Headers.ToDictionary(
+                h => h.Key,
+                h => string.Join(", ", h.Value.ToArray())));
+
+            // For Query Parameters - serialize to JSON string
+            var queryParams = System.Text.Json.JsonSerializer.Serialize(req.Query.ToDictionary(
+                q => q.Key,
+                q => string.Join(", ", q.Value.ToArray())));
+
+            // For Cookies - serialize to JSON string
+            var cookies = System.Text.Json.JsonSerializer.Serialize(req.Cookies.ToDictionary(
+                c => c.Key,
+                c => c.Value));
+
+            // For Route Values - serialize to JSON string
+            var routeValues = System.Text.Json.JsonSerializer.Serialize(req.RouteValues?.ToDictionary(
+                r => r.Key,
+                r => r.Value?.ToString()) ?? new Dictionary<string, string?>());
+
             // Create a structured object that holds all request parameters
             var reqDetails = new Dictionary<string, object>
             {
@@ -82,22 +102,11 @@ namespace IntuneTLSDotNet
                 // Additional context
                 ["TraceIdentifier"] = req.HttpContext.TraceIdentifier,
 
-                // Collections (with @ prefix for proper structured serialization)
-                ["Headers"] = req.Headers.ToDictionary(
-                    h => h.Key,
-                    h => string.Join(", ", h.Value.ToArray())),
-
-                ["QueryParams"] = req.Query.ToDictionary(
-                    q => q.Key,
-                    q => string.Join(", ", q.Value.ToArray())),
-
-                ["Cookies"] = req.Cookies.ToDictionary(
-                    c => c.Key,
-                    c => c.Value),
-
-                ["RouteValues"] = req.RouteValues?.ToDictionary(
-                    r => r.Key,
-                    r => r.Value?.ToString()) ?? new Dictionary<string, string?>()
+                // Collections as JSON strings
+                ["Headers"] = headers,
+                ["QueryParams"] = queryParams,
+                ["Cookies"] = cookies,
+                ["RouteValues"] = routeValues
             };
 
             // Log all properties in a single structured log entry
