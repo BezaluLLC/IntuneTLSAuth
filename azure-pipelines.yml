@@ -1,0 +1,43 @@
+pool:
+  vmImage: 'windows-latest'
+steps:
+- script: |
+    dotnet restore
+    dotnet build --configuration Release
+- task: DotNetCoreCLI@2
+  inputs:
+    command: publish
+    arguments: '--configuration Release --output publish_output'
+    projects: '*.csproj'
+    publishWebProjects: false
+    modifyOutputPath: false
+    zipAfterPublish: false
+- task: ArchiveFiles@2
+  displayName: "Archive files"
+  inputs:
+    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+    includeRootFolder: false
+    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+    artifactName: 'drop'
+
+trigger:
+- DotNet
+
+variables:
+  # Azure service connection established during pipeline creation
+  azureSubscription: 'Bezalu - App Service LZ'
+  appName: 'IntuneTLSDotNet'
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+- task: AzureFunctionApp@2 # Add this at the end of your file
+  inputs:
+    connectedServiceNameARM: 'IntuneTLSAuth'
+    appType: functionAppLinux # This specifies a Linux-based function app
+    isFlexConsumption: true # Uncomment this line if you are deploying to a Flex Consumption app
+    appName: $(appName)
+    package: $(System.ArtifactsDirectory)/**/*.zip
+    deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
