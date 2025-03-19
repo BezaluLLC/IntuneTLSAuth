@@ -36,5 +36,5 @@ steps:
     appType: 'functionAppLinux' # This specifies a Linux-based function app
     isFlexConsumption: true # Uncomment this line if you are deploying to a Flex Consumption app
     appName: 'IntuneTLSAuthDotNet'
-    package: 'drop/$(Build.BuildId).zip''
+    package: 'drop/$(Build.BuildId).zip'
     deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
