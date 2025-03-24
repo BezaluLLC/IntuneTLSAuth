@@ -4,7 +4,7 @@ pool:
 trigger:
   branches:
     include:
-      - DotNet
+      - main
 
 steps:
 - script: |
