@@ -19,6 +19,7 @@ builder.Services
     .AddSingleton<IConfiguration>(builder.Configuration) // Explicitly register IConfiguration
     .AddSingleton<IUnifiService, UnifiService>()
     .AddOpenTelemetry()
+    .UseFunctionsWorkerDefaults()
     .UseAzureMonitor();
 
 builder.Build().Run();
