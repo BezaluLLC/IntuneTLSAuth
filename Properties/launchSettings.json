@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "IntuneTLSDotNet": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7054"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 34574,
+      "useSSL": false
+    }
+  }
+}
