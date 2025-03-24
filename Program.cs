@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using IntuneTLSDotNet.Services;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.Azure.Functions.Worker.OpenTelemetry;
+
 
 // Create the function app builder
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -19,7 +21,7 @@ builder.Services
     .AddSingleton<IConfiguration>(builder.Configuration) // Explicitly register IConfiguration
     .AddSingleton<IUnifiService, UnifiService>()
     .AddOpenTelemetry()
-    .UseFunctionsWorkerDefaults()
-    .UseAzureMonitor();
+    .UseAzureMonitor()
+    .UseFunctionsWorkerDefaults();
 
 builder.Build().Run();
