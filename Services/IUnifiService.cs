@@ -58,7 +58,7 @@ namespace IntuneTLSDotNet.Services
 
                 // Log the list of IP addresses returned from the Unifi API
                 var ipAddresses = unifiResponse.Data.Select(host => host.IpAddress).ToList();
-                _logger.LogDebug("Unifi API returned {Count} IP addresses: [{IpAddresses}]",
+                _logger.LogInformation("Unifi API returned {Count} IP addresses: [{IpAddresses}]",
                     ipAddresses.Count,
                     string.Join(", ", ipAddresses));
 
