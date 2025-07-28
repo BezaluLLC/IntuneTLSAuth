@@ -3,9 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using IntuneTLSDotNet.Services;
-using Azure.Monitor.OpenTelemetry.AspNetCore;
-using Microsoft.Azure.Functions.Worker.OpenTelemetry;
-
 
 // Create the function app builder
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -15,13 +12,14 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.ConfigureFunctionsWebApplication();
 
-// Register HttpClient and Unifi service
+// Register HttpClient and Unifi service with simplified logging
 builder.Services
     .AddHttpClient()
-    .AddSingleton<IConfiguration>(builder.Configuration) // Explicitly register IConfiguration
+    .AddSingleton<IConfiguration>(builder.Configuration)
     .AddSingleton<IUnifiService, UnifiService>()
-    .AddOpenTelemetry()
-    .UseAzureMonitor()
-    .UseFunctionsWorkerDefaults();
+    .AddApplicationInsightsTelemetryWorkerService(); // Traditional App Insights integration
+
+// Remove OpenTelemetry completely
+// builder.Services.AddOpenTelemetry().UseAzureMonitor().UseFunctionsWorkerDefaults();
 
 builder.Build().Run();

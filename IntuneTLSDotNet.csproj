@@ -12,18 +12,22 @@
   <ItemGroup>
     <Content Include="local.settings.json" />
   </ItemGroup>
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.2.0" />
-    <!-- Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4. -->
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" Version="1.1.0-preview6" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+
+		<!-- Remove these packages:
+  <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.2.0" />
+  <PackageReference Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" Version="1.1.0-preview6" />-->
+
+		<!-- Add this traditional App Insights integration -->
+		<PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" />
+
+		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.1" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+	</ItemGroup>
   <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

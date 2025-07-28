@@ -3,17 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using IntuneTLSDotNet.Services;
+using System.Threading;
 
 namespace IntuneTLSDotNet
 {
-    public class Verify(ILogger<Verify> logger, IUnifiService unifiService)
+    public class Verify(IUnifiService _unifiService)
     {
-        private readonly ILogger<Verify> _logger = logger;
-        private readonly IUnifiService _unifiService = unifiService;
-
         [Function("Verify")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req, FunctionContext executionContext)
         {
+            var _logger = executionContext.GetLogger("Verify");
             // Try to get the best client IP from available sources
             string ipAddress = req.Headers["CLIENT-IP"];
 
