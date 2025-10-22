@@ -81,7 +81,7 @@ namespace IntuneTLSDotNet.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking IP address authorization for {IpAddress}", ipAddress);
+                _logger.LogError(ex, "Error checking IP address authorization");
                 return false;
             }
         }
