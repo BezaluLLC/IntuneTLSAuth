@@ -15,6 +15,7 @@ builder.ConfigureFunctionsWebApplication();
 // Register HttpClient and Unifi service with simplified logging
 builder.Services
     .AddHttpClient()
+    .AddMemoryCache()
     .AddSingleton<IConfiguration>(builder.Configuration)
     .AddSingleton<IUnifiService, UnifiService>()
     .AddApplicationInsightsTelemetryWorkerService(); // Traditional App Insights integration
