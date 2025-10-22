@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace IntuneTLSDotNet.Services
 {
@@ -15,13 +15,13 @@ namespace IntuneTLSDotNet.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<UnifiService> _logger;
-        private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _cache;
         private readonly string _apiKey;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private const string CacheKey = "UnifiIpAddressList";
         private readonly TimeSpan _cacheDuration;
 
-        public UnifiService(HttpClient httpClient, IConfiguration configuration, ILogger<UnifiService> logger, IMemoryCache cache)
+        public UnifiService(HttpClient httpClient, IConfiguration configuration, ILogger<UnifiService> logger, IDistributedCache cache)
         {
             _httpClient = httpClient;
             _logger = logger;
@@ -45,8 +45,11 @@ namespace IntuneTLSDotNet.Services
         {
             try
             {
-                // Try to get the cached IP address list
-                if (!_cache.TryGetValue(CacheKey, out List<string>? cachedIpAddresses))
+                // Try to get the cached IP address list from distributed cache
+                var cachedData = await _cache.GetStringAsync(CacheKey);
+                List<string>? cachedIpAddresses = null;
+                
+                if (cachedData == null)
                 {
                     _logger.LogInformation("Cache miss - fetching IP addresses from Unifi API");
                     
@@ -55,17 +58,22 @@ namespace IntuneTLSDotNet.Services
                     
                     if (cachedIpAddresses != null && cachedIpAddresses.Count > 0)
                     {
-                        // Store in cache
-                        var cacheEntryOptions = new MemoryCacheEntryOptions()
-                            .SetAbsoluteExpiration(_cacheDuration);
+                        // Serialize and store in distributed cache
+                        var serializedData = JsonSerializer.Serialize(cachedIpAddresses, _jsonSerializerOptions);
+                        var cacheOptions = new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = _cacheDuration
+                        };
                         
-                        _cache.Set(CacheKey, cachedIpAddresses, cacheEntryOptions);
+                        await _cache.SetStringAsync(CacheKey, serializedData, cacheOptions);
                         _logger.LogInformation("Cached {Count} IP addresses for {Duration} minutes", 
                             cachedIpAddresses.Count, _cacheDuration.TotalMinutes);
                     }
                 }
                 else
                 {
+                    // Deserialize cached data
+                    cachedIpAddresses = JsonSerializer.Deserialize<List<string>>(cachedData, _jsonSerializerOptions);
                     _logger.LogInformation("Cache hit - using cached IP addresses ({Count} addresses)", 
                         cachedIpAddresses?.Count ?? 0);
                 }
