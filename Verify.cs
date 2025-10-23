@@ -16,7 +16,7 @@ namespace IntuneTLSDotNet
             // Try to get the best client IP from available sources
             string ipAddress = req.Headers["CLIENT-IP"];
 
-            // X-Forwarded-For can contain multiple IPs - we want the first one (client's original IP)
+            // Ensure no ports are present
             if (ipAddress.Contains(':'))
             {
                 ipAddress = ipAddress.Split(':')[0].Trim();
