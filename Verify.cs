@@ -25,7 +25,7 @@ namespace IntuneTLSDotNet
             if (ipAddress == testIp)
                 logger.LogWarning("Testing IP is in use. This is likely being run in Local Dev. If not, abort immediately.");
 
-            // X-Forwarded-For can contain multiple IPs - we want the first one (client's original IP)
+            // Ensure no ports are present
             if (ipAddress.Contains(':'))
             {
                 ipAddress = ipAddress.Split(':')[0].Trim();
