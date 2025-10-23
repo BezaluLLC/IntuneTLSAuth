@@ -18,6 +18,9 @@ namespace IntuneTLSDotNet
                 ? req.Headers["CLIENT-IP"].ToString()
                 : testIp;
 
+            // Remove any newline characters from ipAddress before logging (prevents log injection)
+            ipAddress = ipAddress.Replace("\r", "").Replace("\n", "");
+
             // Log output for testing fallback IP
             if (ipAddress == testIp)
                 logger.LogWarning("Testing IP is in use. This is likely being run in Local Dev. If not, abort immediately.");
