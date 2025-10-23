@@ -11,52 +11,38 @@ namespace IntuneTLSDotNet.Services
         Task<bool> IsIpAddressAuthorized(string ipAddress);
     }
 
-    public class UnifiService : IUnifiService
+    // Converted to primary constructor (C#13 / .NET9)
+    public class UnifiService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        ILogger<UnifiService> logger,
+        IDistributedCache cache) : IUnifiService
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<UnifiService> _logger;
-        private readonly IDistributedCache _cache;
-        private readonly string _apiKey;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
-        private const string CacheKey = "UnifiIpAddressList";
-        private readonly TimeSpan _cacheDuration;
-
-        public UnifiService(HttpClient httpClient, IConfiguration configuration, ILogger<UnifiService> logger, IDistributedCache cache)
+        private readonly string _apiKey = configuration["UNIFI_API_TOKEN"] ?? throw new InvalidOperationException("UNIFI_API_TOKEN not configured");
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
-            _httpClient = httpClient;
-            _logger = logger;
-            _cache = cache;
-
-            // Try to get the API key from configuration with more detailed error handling
-            _apiKey = configuration["UNIFI_API_TOKEN"] ?? throw new InvalidOperationException("UNIFI_API_TOKEN not configured");
-
-            // Get cache duration from configuration, default to 5 minutes
-            var cacheDurationMinutes = configuration.GetValue<int?>("UNIFI_CACHE_DURATION_MINUTES") ?? 5;
-            _cacheDuration = TimeSpan.FromMinutes(cacheDurationMinutes);
-
-            // Initialize JsonSerializerOptions once and reuse it
-            _jsonSerializerOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-        }
+            PropertyNameCaseInsensitive = true
+        };
+        private readonly TimeSpan _cacheDuration =
+            TimeSpan.FromMinutes(configuration.GetValue<int?>("UNIFI_CACHE_DURATION_MINUTES") ?? 5);
+        private const string CacheKey = "UnifiIpAddressList";
 
         public async Task<bool> IsIpAddressAuthorized(string ipAddress)
         {
             try
             {
                 // Try to get the cached IP address list from distributed cache
-                var cachedData = await _cache.GetStringAsync(CacheKey);
-                List<string>? cachedIpAddresses = null;
-                
+                var cachedData = await cache.GetStringAsync(CacheKey);
+                List<string>? cachedIpAddresses;
+
                 if (cachedData == null)
                 {
-                    _logger.LogInformation("Cache miss - fetching IP addresses from Unifi API");
-                    
+                    logger.LogInformation("Cache miss - fetching IP addresses from Unifi API");
+
                     // Fetch from API
                     cachedIpAddresses = await FetchIpAddressesFromApi();
-                    
-                    if (cachedIpAddresses != null && cachedIpAddresses.Count > 0)
+
+                    if (cachedIpAddresses.Count > 0)
                     {
                         // Serialize and store in distributed cache
                         var serializedData = JsonSerializer.Serialize(cachedIpAddresses, _jsonSerializerOptions);
@@ -64,9 +50,9 @@ namespace IntuneTLSDotNet.Services
                         {
                             AbsoluteExpirationRelativeToNow = _cacheDuration
                         };
-                        
-                        await _cache.SetStringAsync(CacheKey, serializedData, cacheOptions);
-                        _logger.LogInformation("Cached {Count} IP addresses for {Duration} minutes", 
+
+                        await cache.SetStringAsync(CacheKey, serializedData, cacheOptions);
+                        logger.LogInformation("Cached {Count} IP addresses for {Duration} minutes",
                             cachedIpAddresses.Count, _cacheDuration.TotalMinutes);
                     }
                 }
@@ -74,68 +60,99 @@ namespace IntuneTLSDotNet.Services
                 {
                     // Deserialize cached data
                     cachedIpAddresses = JsonSerializer.Deserialize<List<string>>(cachedData, _jsonSerializerOptions);
-                    _logger.LogInformation("Cache hit - using cached IP addresses ({Count} addresses)", 
+                    logger.LogInformation("Cache hit - using cached IP addresses ({Count} addresses)",
                         cachedIpAddresses?.Count ?? 0);
                 }
 
                 if (cachedIpAddresses == null || cachedIpAddresses.Count == 0)
                 {
-                    _logger.LogWarning("No IP addresses available for authorization check");
+                    logger.LogWarning("No IP addresses available for authorization check");
                     return false;
                 }
 
-                bool isAuthorized = cachedIpAddresses.Contains(ipAddress);
+                var isAuthorized = cachedIpAddresses.Contains(ipAddress);
                 return isAuthorized;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking IP address authorization");
+                logger.LogError(ex, "Error checking IP address authorization");
                 return false;
             }
         }
 
         private async Task<List<string>> FetchIpAddressesFromApi()
         {
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
 
-            _logger.LogInformation("Sending request to Unifi API");
-            var response = await _httpClient.GetAsync("https://api.ui.com/ea/hosts");
+            logger.LogInformation("Sending request to Unifi API");
+            var response = await httpClient.GetAsync("https://api.ui.com/ea/hosts");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
 
             // Log the raw response to help with debugging
-            _logger.LogTrace("Raw Unifi API response: {RawResponse}", content);
+            logger.LogTrace("Raw Unifi API response: {RawResponse}", content);
 
             var unifiResponse = JsonSerializer.Deserialize<UnifiResponse>(content, _jsonSerializerOptions);
 
             if (unifiResponse?.Data == null)
             {
-                _logger.LogWarning("No data returned from Unifi API");
-                return new List<string>();
+                logger.LogWarning("No data returned from Unifi API");
+                return [];
             }
 
-            // Extract and log the list of IP addresses returned from the Unifi API
-            var ipAddresses = unifiResponse.Data.Select(host => host.IpAddress).ToList();
-            _logger.LogInformation("Unifi API returned {Count} IP addresses: [{IpAddresses}]",
-                ipAddresses.Count,
-                string.Join(", ", ipAddresses));
+            // Prefer reportedState.wans[].ipv4 values, fallback to ipAddress if none present
+            var wanIpAddresses = unifiResponse.Data
+                .SelectMany(host => host.ReportedState?.Wans?
+                    .Select(w => w.Ipv4)
+                    .Where(ip => !string.IsNullOrWhiteSpace(ip))
+                    ?? [])
+                .Distinct()
+                .ToList();
 
-            return ipAddresses;
+            var fallbackIpAddresses = unifiResponse.Data
+                .Select(host => host.IpAddress)
+                .Where(ip => !string.IsNullOrWhiteSpace(ip))
+                .Distinct()
+                .ToList();
+
+            var finalIpList = wanIpAddresses.Count != 0 ? wanIpAddresses : fallbackIpAddresses;
+
+            logger.LogInformation("Unifi API returned {WanCount} WAN IPs and {FallbackCount} fallback IPs. Using {FinalCount} IPs: [{IpAddresses}]",
+                wanIpAddresses.Count,
+                fallbackIpAddresses.Count,
+                finalIpList.Count,
+                string.Join(", ", finalIpList));
+
+            return finalIpList;
         }
     }
 
     public class UnifiResponse
     {
         [JsonPropertyName("data")]
-        public List<UnifiHost> Data { get; set; } = new List<UnifiHost>();
+        public List<UnifiHost> Data { get; } = [];
     }
 
     public class UnifiHost
     {
-        // Try the correct property name for IP address from Unifi API
         [JsonPropertyName("ipAddress")]
         public string IpAddress { get; set; } = string.Empty;
+
+        [JsonPropertyName("reportedState")]
+        public ReportedState? ReportedState { get; set; }
+    }
+
+    public class ReportedState
+    {
+        [JsonPropertyName("wans")]
+        public List<Wan> Wans { get; } = [];
+    }
+
+    public class Wan
+    {
+        [JsonPropertyName("ipv4")]
+        public string Ipv4 { get; set; } = string.Empty;
     }
 }
