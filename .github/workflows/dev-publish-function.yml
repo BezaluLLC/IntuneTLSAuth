@@ -23,7 +23,7 @@ jobs:
     permissions:
       id-token: write # Required for OIDC
       contents: read # Required for actions/checkout
-    environment: prod
+    environment: dev
     steps:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
