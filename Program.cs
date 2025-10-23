@@ -5,21 +5,17 @@ using Microsoft.Extensions.Configuration;
 using IntuneTLSDotNet.Services;
 using Azure.Identity;
 using StackExchange.Redis;
-using Microsoft.Azure.StackExchangeRedis;
 
 // Create the function app builder
 var builder = FunctionsApplication.CreateBuilder(args);
 
-// Ensure configuration is properly loaded from all sources
-builder.Configuration.AddEnvironmentVariables();
-
 builder.ConfigureFunctionsWebApplication();
 
 // Configure Azure Redis with Managed Identity
-var redisConnectionString = builder.Configuration["REDIS_CONNECTION_STRING"];
+var redisConnectionString = builder.Configuration.GetValue<string>("REDIS_CONNECTION_STRING");
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
-    var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);
+    var configurationOptions = ConfigurationOptions.Parse($"{redisConnectionString}");
     
     // Use Azure Managed Identity for authentication
     await configurationOptions.ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
