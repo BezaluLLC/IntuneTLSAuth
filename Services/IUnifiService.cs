@@ -63,7 +63,8 @@ namespace IntuneTLSDotNet.Services
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
             });
-            logger.LogInformation("Manual IP added {Ip}. Manual list count={Count}", ipAddress, manualIps.Count);
+            var sanitizedIp = ipAddress.Replace("\r", "").Replace("\n", "");
+            logger.LogInformation("Manual IP added {Ip}. Manual list count={Count}", sanitizedIp, manualIps.Count);
             return true;
         }
 
